@@ -1,5 +1,4 @@
 // src/services/retailerService.js
-
 import { mockProducts, mockInitialSales } from './mockData';
 import { addStock } from './stockService';
 import { getOffers } from './investmentService';
@@ -32,7 +31,7 @@ export const addSale = (cartItems, total, customerId, paymentMethod) => {
       retailerName: currentUser ? currentUser.name : 'Varejista Desconhecido',
       retailerId: currentUser ? (currentUser.name.includes('Padaria') ? 1 : currentUser.name.includes('Mercado') ? 2 : 3) : 0,
       date: new Date().toISOString(),
-      items: cartItems.map(item => ({...item})),
+      items: cartItems.map(item => ({...item, price: item.sellingPrice })), // Garante que o preço correto é salvo
       total,
       customerId,
       paymentMethod,
@@ -49,12 +48,10 @@ export const addSale = (cartItems, total, customerId, paymentMethod) => {
   });
 };
 
-// FUNÇÃO RESTAURADA
 export const getDailySummary = () => {
   return new Promise((resolve) => {
     const allSales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-    const today = new Date("2025-08-17T00:00:00.000Z");
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
     const todaySales = allSales.filter(sale => sale.date.startsWith(todayStr));
 
     const summary = {
@@ -80,7 +77,6 @@ export const getDailySummary = () => {
   });
 };
 
-// FUNÇÃO RESTAURADA
 export const getSalesHistory = (filters) => {
     return new Promise((resolve) => {
         let sales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
@@ -106,16 +102,17 @@ export const joinOffer = (offerId) => {
     });
 };
 
-// FUNÇÃO RESTAURADA
 export const getProgramsData = () => {
     return new Promise(async (resolve) => {
         const allOffers = await getOffers();
         const allSales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
         const participations = JSON.parse(localStorage.getItem(PARTICIPATIONS_KEY)) || [];
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today.setDate(today.getDate() - 30));
 
         const retailerData = {
             channel: 'Padaria',
-            salesLast30Days: allSales.filter(s => new Date(s.date) > new Date("2025-07-18T00:00:00.000Z")).length
+            salesLast30Days: allSales.filter(s => new Date(s.date) > thirtyDaysAgo).length
         };
 
         const participatingOffers = [];
@@ -147,7 +144,6 @@ export const getProgramsData = () => {
     });
 };
 
-// FUNÇÃO RESTAURADA
 export const generateRetailerInsights = () => {
     return new Promise((resolve) => {
         const sales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
@@ -159,25 +155,26 @@ export const generateRetailerInsights = () => {
             resolve({ insights: [], insightCounts: {} });
             return;
         }
-
-        // Exemplo: Alerta de Estoque
-        const last7Days = new Date("2025-08-18T00:00:00.000Z");
+        
+        const last7Days = new Date();
         last7Days.setDate(last7Days.getDate() - 7);
         const recentSalesItems = sales.filter(s => new Date(s.date) > last7Days).flatMap(s => s.items);
-        const topSeller = recentSalesItems.reduce((acc, item) => {
-            acc[item.name] = (acc[item.name] || 0) + item.quantity;
-            return acc;
-        }, {});
-        const topSellerName = Object.keys(topSeller).reduce((a, b) => topSeller[a] > topSeller[b] ? a : b, null);
-        if (topSellerName) {
-            insights.push({
-                id: 3, type: 'stock', category: 'Alertas', title: 'Alerta de Estoque',
-                text: `'${topSellerName}' é seu produto mais vendido na última semana. Verifique os níveis de estoque!`,
-                critical: true
-            });
+        
+        if (recentSalesItems.length > 0) {
+            const topSeller = recentSalesItems.reduce((acc, item) => {
+                acc[item.name] = (acc[item.name] || 0) + item.quantity;
+                return acc;
+            }, {});
+            const topSellerName = Object.keys(topSeller).reduce((a, b) => topSeller[a] > topSeller[b] ? a : b, null);
+            if (topSellerName) {
+                insights.push({
+                    id: 3, type: 'stock', category: 'Alertas', title: 'Alerta de Estoque',
+                    text: `'${topSellerName}' é seu produto mais vendido na última semana. Verifique os níveis de estoque!`,
+                    critical: true
+                });
+            }
         }
         
-        // Exemplo: Produto com Maior Perda
         if (losses.length > 0) {
             const lossesByProduct = losses.reduce((acc, loss) => {
                 acc[loss.productName] = (acc[loss.productName] || 0) + parseInt(loss.quantity, 10);
@@ -201,5 +198,63 @@ export const generateRetailerInsights = () => {
         }, { alerts: 0, opportunities: 0, trends: 0 });
 
         resolve({ insights, insightCounts });
+    });
+};
+
+// NOVA FUNÇÃO PARA CALCULAR O RATING DE DADOS
+export const getDataRating = () => {
+    return new Promise((resolve) => {
+        const sales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+        const losses = JSON.parse(localStorage.getItem(LOSSES_KEY)) || [];
+        const products = JSON.parse(localStorage.getItem(PRODUCTS_KEY)) || [];
+
+        let score = 0;
+
+        // Critério 1: Consistência de Vendas (máx 25 pontos)
+        if (sales.length > 50) score += 25;
+        else if (sales.length > 20) score += 15;
+        else if (sales.length > 5) score += 5;
+
+        // Critério 2: Uso do Controle de Perdas (máx 20 pontos)
+        if (losses.length > 5) score += 20;
+        else if (losses.length > 0) score += 10;
+
+        // Critério 3: Riqueza dos Dados (preço de custo) (máx 30 pontos)
+        const productsWithCost = products.filter(p => p.costPrice && p.costPrice > 0).length;
+        if (productsWithCost / products.length > 0.8) score += 30;
+        else if (productsWithCost > 0) score += 15;
+
+        // Critério 4: Associação de Clientes (máx 25 pontos)
+        const salesWithCustomer = sales.filter(s => s.customerId && s.customerId !== '3').length;
+        if (salesWithCustomer / sales.length > 0.5) score += 25;
+        else if (salesWithCustomer > 0) score += 10;
+
+        let rating = 'Bronze';
+        let level = 1;
+        let icon = '🥉';
+        let nextLevel = 'Prata';
+        let progress = (score / 40) * 100;
+
+        if (score >= 85) {
+            rating = 'Diamante';
+            level = 4;
+            icon = '💎';
+            nextLevel = 'Máximo';
+            progress = 100;
+        } else if (score >= 65) {
+            rating = 'Ouro';
+            level = 3;
+            icon = '🥇';
+            nextLevel = 'Diamante';
+            progress = ((score - 65) / (85 - 65)) * 100;
+        } else if (score >= 40) {
+            rating = 'Prata';
+            level = 2;
+            icon = '🥈';
+            nextLevel = 'Ouro';
+            progress = ((score - 40) / (65 - 40)) * 100;
+        }
+
+        resolve({ rating, icon, level, score, nextLevel, progress });
     });
 };

@@ -1,43 +1,49 @@
 // src/pages/IndustryConnectPage.jsx
 import React from 'react';
-import { Card, Button, Row, Col, ListGroup, Badge } from 'react-bootstrap';
-import { PlusCircle } from 'react-bootstrap-icons';
+import { Card, Button, Row, Col, Badge, Form } from 'react-bootstrap';
+import { FunnelFill, Search } from 'react-bootstrap-icons';
 
-// Simulação de varejistas que "anunciaram" interesse em compartilhar dados
-const mockRetailerOffers = [
-    { id: 1, retailerName: 'Padaria Pão Quente', channel: 'Padaria', dataAvailable: 'Dados de Salgados e Bebidas (24 meses)' },
-    { id: 2, retailerName: 'Mercado Central', channel: 'Supermercado Pequeno', dataAvailable: 'Dados de Laticínios e Snacks (18 meses)' },
+// Simulação de varejistas anonimizados com seus ratings
+const mockRatedRetailers = [
+    { id: 102, rating: 'Diamante', icon: '💎', channel: 'Padaria', city: 'Guaxupé' },
+    { id: 105, rating: 'Ouro', icon: '🥇', channel: 'Supermercado Pequeno', city: 'Muzambinho' },
+    { id: 108, rating: 'Ouro', icon: '🥇', channel: 'Padaria', city: 'Guaxupé' },
+    { id: 112, rating: 'Prata', icon: '🥈', channel: 'Conveniência', city: 'Guaxupé' },
 ];
 
 const IndustryConnectPage = () => {
     return (
         <div>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>DARVIN Conecta</h2>
-                <Button onClick={() => alert('Funcionalidade para criar um novo anúncio de busca por dados.')}>
-                    <PlusCircle className="me-2" /> Anunciar Busca por Dados
-                </Button>
-            </div>
-            <p className="text-muted">Encontre varejistas dispostos a estabelecer parcerias de dados e negocie diretamente.</p>
+            <h2 className="mb-2">DARVIN Conecta</h2>
+            <p className="text-muted mb-4">Encontre e negocie contratos de dados com os varejistas de maior performance.</p>
             
-            <h4 className="mb-3">Varejistas Parceiros em Potencial</h4>
-             <Row xs={1} md={2} className="g-4">
-                {mockRetailerOffers.map(offer => (
-                    <Col key={offer.id}>
-                        <Card className="h-100">
-                            <Card.Header>
-                                <span className="h5">{offer.retailerName}</span>
-                                <Badge bg="secondary" className="ms-2">{offer.channel}</Badge>
-                            </Card.Header>
+            {/* Filtros */}
+            <Card className="mb-4">
+                <Card.Body as={Form}>
+                    <Row className="g-3 align-items-end">
+                        <Col md><Form.Group><Form.Label><FunnelFill className="me-2"/>Filtrar por</Form.Label><Form.Select><option>Rating (Todos)</option><option>Diamante</option><option>Ouro</option><option>Prata</option></Form.Select></Form.Group></Col>
+                        <Col md><Form.Group><Form.Label>Canal</Form.Label><Form.Select><option>Todos</option><option>Padaria</option><option>Supermercado Pequeno</option></Form.Select></Form.Group></Col>
+                        <Col md><Form.Group><Form.Label>Cidade</Form.Label><Form.Control type="text" placeholder="Ex: Guaxupé"/></Form.Group></Col>
+                        <Col md="auto"><Button><Search className="me-2"/>Buscar</Button></Col>
+                    </Row>
+                </Card.Body>
+            </Card>
+
+            {/* Lista de Varejistas */}
+            <Row xs={1} md={2} lg={3} className="g-4">
+                {mockRatedRetailers.map(r => (
+                    <Col key={r.id}>
+                        <Card className="text-center h-100">
                             <Card.Body>
-                                <Card.Subtitle className="mb-2 text-muted">Dados Disponíveis para Parceria:</Card.Subtitle>
-                                <ListGroup variant="flush">
-                                    <ListGroup.Item>{offer.dataAvailable}</ListGroup.Item>
-                                </ListGroup>
+                                <span style={{ fontSize: '3rem' }}>{r.icon}</span>
+                                <Card.Title as="h4" className="mt-2">{r.rating}</Card.Title>
+                                <Card.Subtitle className="mb-2 text-muted">Varejista #{r.id}</Card.Subtitle>
+                                <Badge bg="light" text="dark" className="me-1">{r.channel}</Badge>
+                                <Badge bg="light" text="dark">{r.city}</Badge>
                             </Card.Body>
                             <Card.Footer>
-                                <Button variant="success" className="w-100" onClick={() => alert(`Proposta enviada para ${offer.retailerName}!`)}>
-                                    Enviar Proposta de Parceria
+                                <Button variant="success" className="w-100" onClick={() => alert(`Iniciar negociação com o Varejista #${r.id}`)}>
+                                    Propor Contrato de Dados
                                 </Button>
                             </Card.Footer>
                         </Card>
