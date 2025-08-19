@@ -1,5 +1,4 @@
 // src/App.jsx
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/routing/PrivateRoute.jsx';
@@ -10,10 +9,17 @@ import RetailerStockPage from './pages/RetailerStockPage.jsx';
 import RetailerHistoryPage from './pages/RetailerHistoryPage.jsx';
 import RetailerQuickEntryPage from './pages/RetailerQuickEntryPage.jsx';
 import RetailerLossesPage from './pages/RetailerLossesPage.jsx';
-import RetailerConnectPage from './pages/RetailerConnectPage.jsx';
 import IndustryDashboardPage from './pages/IndustryDashboardPage.jsx';
-import IndustryInvestmentsPage from './pages/IndustryInvestmentsPage.jsx';
 import { useAuth } from './hooks/useAuth.js';
+
+// Módulos principais
+import RetailerCampaignsPage from './pages/RetailerCampaignsPage.jsx';
+import IndustryCampaignsPage from './pages/IndustryCampaignsPage.jsx';
+
+// NOVAS PÁGINAS 'CONECTA'
+import RetailerConnectPage from './pages/RetailerConnectPage.jsx';
+import IndustryConnectPage from './pages/IndustryConnectPage.jsx';
+
 
 import './assets/styles/App.css';
 
@@ -25,14 +31,19 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<DefaultDashboardElement />} />
+            {/* Rotas Varejista */}
             <Route path="/retailer/dashboard" element={<RetailerDashboardPage />} />
             <Route path="/retailer/quick-entry" element={<RetailerQuickEntryPage />} />
             <Route path="/retailer/stock" element={<RetailerStockPage />} />
             <Route path="/retailer/history" element={<RetailerHistoryPage />} />
             <Route path="/retailer/losses" element={<RetailerLossesPage />} />
+            <Route path="/retailer/campaigns" element={<RetailerCampaignsPage />} />
             <Route path="/retailer/connect" element={<RetailerConnectPage />} />
+
+            {/* Rotas Indústria */}
             <Route path="/industry/dashboard" element={<IndustryDashboardPage />} />
-            <Route path="/industry/investments" element={<IndustryInvestmentsPage />} />
+            <Route path="/industry/campaigns" element={<IndustryCampaignsPage />} />
+            <Route path="/industry/connect" element={<IndustryConnectPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

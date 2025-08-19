@@ -5,12 +5,12 @@ import { ListGroup, Button, Row, Col, Form } from 'react-bootstrap';
 import { CheckLg, Trash, PersonPlusFill } from 'react-bootstrap-icons';
 
 const Cart = ({ cartItems, onClearCart, onFinishSale, onUpdateQuantity, customers, selectedCustomer, onSelectCustomer, onAddNewCustomer }) => {
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // CORREÇÃO: O total agora é calculado usando 'sellingPrice'
+  const total = cartItems.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
 
   return (
     <div className="p-3 cart-summary-new">
       <h4>Caixa</h4>
-      {/* SEÇÃO DO CLIENTE */}
       <div className="customer-section mb-3">
         <Form.Group>
           <Form.Label>Associar Cliente (Opcional)</Form.Label>
@@ -25,21 +25,22 @@ const Cart = ({ cartItems, onClearCart, onFinishSale, onUpdateQuantity, customer
       </div>
       <hr />
 
-      {/* LÓGICA DE RENDERIZAÇÃO DOS ITENS RESTAURADA AQUI */}
       <ListGroup variant="flush" className="cart-items-list">
         {cartItems.length > 0 ? (
           cartItems.map((item) => (
             <ListGroup.Item key={item.id} className="d-flex justify-content-between align-items-center">
               <div>
                 {item.name} <br />
-                <small className="text-muted">R$ {item.price.toFixed(2)}</small>
+                {/* CORREÇÃO: Exibindo o 'sellingPrice' */}
+                <small className="text-muted">R$ {item.sellingPrice.toFixed(2)}</small>
               </div>
               <div className="d-flex align-items-center">
                 <Button variant="outline-secondary" size="sm" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
                 <span className="mx-2 fw-bold">{item.quantity}</span>
                 <Button variant="outline-secondary" size="sm" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
                 <strong className="ms-3" style={{width: '70px', textAlign: 'right'}}>
-                    R$ {(item.price * item.quantity).toFixed(2)}
+                    {/* CORREÇÃO: Calculando subtotal com 'sellingPrice' */}
+                    R$ {(item.sellingPrice * item.quantity).toFixed(2)}
                 </strong>
               </div>
             </ListGroup.Item>

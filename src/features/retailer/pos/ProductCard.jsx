@@ -10,7 +10,8 @@ const ProductCard = ({ product, onAddToCart }) => {
       <Card.Body className="d-flex flex-column">
         <Card.Title className="flex-grow-1">{product.name}</Card.Title>
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <Badge bg="light" text="dark" className="fs-6">R$ {product.price.toFixed(2)}</Badge>
+          {/* CORREÇÃO: Usando 'sellingPrice' que agora existe nos dados */}
+          <Badge bg="light" text="dark" className="fs-6">R$ {(product.sellingPrice || 0).toFixed(2)}</Badge>
           <small className="text-muted">{product.industry}</small>
         </div>
         <Button variant="primary" onClick={() => onAddToCart(product)}>
