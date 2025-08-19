@@ -15,11 +15,8 @@ import { useAuth } from './hooks/useAuth.js';
 // Módulos principais
 import RetailerCampaignsPage from './pages/RetailerCampaignsPage.jsx';
 import IndustryCampaignsPage from './pages/IndustryCampaignsPage.jsx';
-
-// NOVAS PÁGINAS 'CONECTA'
 import RetailerConnectPage from './pages/RetailerConnectPage.jsx';
 import IndustryConnectPage from './pages/IndustryConnectPage.jsx';
-
 
 import './assets/styles/App.css';
 

@@ -31,7 +31,7 @@ export const addSale = (cartItems, total, customerId, paymentMethod) => {
       retailerName: currentUser ? currentUser.name : 'Varejista Desconhecido',
       retailerId: currentUser ? (currentUser.name.includes('Padaria') ? 1 : currentUser.name.includes('Mercado') ? 2 : 3) : 0,
       date: new Date().toISOString(),
-      items: cartItems.map(item => ({...item, price: item.sellingPrice })), // Garante que o preço correto é salvo
+      items: cartItems.map(item => ({...item, price: item.sellingPrice })),
       total,
       customerId,
       paymentMethod,
@@ -45,35 +45,6 @@ export const addSale = (cartItems, total, customerId, paymentMethod) => {
     });
 
     resolve(newSale);
-  });
-};
-
-export const getDailySummary = () => {
-  return new Promise((resolve) => {
-    const allSales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todaySales = allSales.filter(sale => sale.date.startsWith(todayStr));
-
-    const summary = {
-      totalRevenue: 0,
-      totalSalesCount: todaySales.length,
-      topProducts: {},
-    };
-
-    todaySales.forEach(sale => {
-      summary.totalRevenue += sale.total;
-      sale.items.forEach(item => {
-        if (!summary.topProducts[item.name]) summary.topProducts[item.name] = 0;
-        summary.topProducts[item.name] += item.quantity;
-      });
-    });
-
-    summary.averageTicket = summary.totalSalesCount > 0 ? summary.totalRevenue / summary.totalSalesCount : 0;
-    summary.topProducts = Object.entries(summary.topProducts)
-      .map(([name, quantity]) => ({ name, quantity }))
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
-    resolve(summary);
   });
 };
 
@@ -108,7 +79,7 @@ export const getProgramsData = () => {
         const allSales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
         const participations = JSON.parse(localStorage.getItem(PARTICIPATIONS_KEY)) || [];
         const today = new Date();
-        const thirtyDaysAgo = new Date(today.setDate(today.getDate() - 30));
+        const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
 
         const retailerData = {
             channel: 'Padaria',
@@ -147,7 +118,6 @@ export const getProgramsData = () => {
 export const generateRetailerInsights = () => {
     return new Promise((resolve) => {
         const sales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        const products = JSON.parse(localStorage.getItem(PRODUCTS_KEY)) || [];
         const losses = JSON.parse(localStorage.getItem(LOSSES_KEY)) || [];
         let insights = [];
 
@@ -201,60 +171,44 @@ export const generateRetailerInsights = () => {
     });
 };
 
-// NOVA FUNÇÃO PARA CALCULAR O RATING DE DADOS
 export const getDataRating = () => {
     return new Promise((resolve) => {
         const sales = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
         const losses = JSON.parse(localStorage.getItem(LOSSES_KEY)) || [];
         const products = JSON.parse(localStorage.getItem(PRODUCTS_KEY)) || [];
-
         let score = 0;
 
-        // Critério 1: Consistência de Vendas (máx 25 pontos)
         if (sales.length > 50) score += 25;
         else if (sales.length > 20) score += 15;
         else if (sales.length > 5) score += 5;
 
-        // Critério 2: Uso do Controle de Perdas (máx 20 pontos)
         if (losses.length > 5) score += 20;
         else if (losses.length > 0) score += 10;
 
-        // Critério 3: Riqueza dos Dados (preço de custo) (máx 30 pontos)
         const productsWithCost = products.filter(p => p.costPrice && p.costPrice > 0).length;
-        if (productsWithCost / products.length > 0.8) score += 30;
+        if (products.length > 0 && productsWithCost / products.length > 0.8) score += 30;
         else if (productsWithCost > 0) score += 15;
 
-        // Critério 4: Associação de Clientes (máx 25 pontos)
         const salesWithCustomer = sales.filter(s => s.customerId && s.customerId !== '3').length;
-        if (salesWithCustomer / sales.length > 0.5) score += 25;
+        if (sales.length > 0 && salesWithCustomer / sales.length > 0.5) score += 25;
         else if (salesWithCustomer > 0) score += 10;
 
         let rating = 'Bronze';
-        let level = 1;
         let icon = '🥉';
         let nextLevel = 'Prata';
         let progress = (score / 40) * 100;
 
         if (score >= 85) {
-            rating = 'Diamante';
-            level = 4;
-            icon = '💎';
-            nextLevel = 'Máximo';
+            rating = 'Diamante'; icon = '💎'; nextLevel = 'Máximo';
             progress = 100;
         } else if (score >= 65) {
-            rating = 'Ouro';
-            level = 3;
-            icon = '🥇';
-            nextLevel = 'Diamante';
+            rating = 'Ouro'; icon = '🥇'; nextLevel = 'Diamante';
             progress = ((score - 65) / (85 - 65)) * 100;
         } else if (score >= 40) {
-            rating = 'Prata';
-            level = 2;
-            icon = '🥈';
-            nextLevel = 'Ouro';
+            rating = 'Prata'; icon = '🥈'; nextLevel = 'Ouro';
             progress = ((score - 40) / (65 - 40)) * 100;
         }
 
-        resolve({ rating, icon, level, score, nextLevel, progress });
+        resolve({ rating, icon, score, nextLevel, progress });
     });
 };

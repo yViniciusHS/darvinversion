@@ -1,12 +1,10 @@
 // src/features/retailer/pos/Cart.jsx
-
 import React from 'react';
 import { ListGroup, Button, Row, Col, Form } from 'react-bootstrap';
 import { CheckLg, Trash, PersonPlusFill } from 'react-bootstrap-icons';
 
 const Cart = ({ cartItems, onClearCart, onFinishSale, onUpdateQuantity, customers, selectedCustomer, onSelectCustomer, onAddNewCustomer }) => {
-  // CORREÇÃO: O total agora é calculado usando 'sellingPrice'
-  const total = cartItems.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
+  const total = cartItems.reduce((sum, item) => sum + (item.sellingPrice || 0) * item.quantity, 0);
 
   return (
     <div className="p-3 cart-summary-new">
@@ -24,23 +22,20 @@ const Cart = ({ cartItems, onClearCart, onFinishSale, onUpdateQuantity, customer
         </Form.Group>
       </div>
       <hr />
-
       <ListGroup variant="flush" className="cart-items-list">
         {cartItems.length > 0 ? (
           cartItems.map((item) => (
             <ListGroup.Item key={item.id} className="d-flex justify-content-between align-items-center">
               <div>
                 {item.name} <br />
-                {/* CORREÇÃO: Exibindo o 'sellingPrice' */}
-                <small className="text-muted">R$ {item.sellingPrice.toFixed(2)}</small>
+                <small className="text-muted">R$ {(item.sellingPrice || 0).toFixed(2)}</small>
               </div>
               <div className="d-flex align-items-center">
                 <Button variant="outline-secondary" size="sm" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
                 <span className="mx-2 fw-bold">{item.quantity}</span>
                 <Button variant="outline-secondary" size="sm" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
                 <strong className="ms-3" style={{width: '70px', textAlign: 'right'}}>
-                    {/* CORREÇÃO: Calculando subtotal com 'sellingPrice' */}
-                    R$ {(item.sellingPrice * item.quantity).toFixed(2)}
+                    R$ {((item.sellingPrice || 0) * item.quantity).toFixed(2)}
                 </strong>
               </div>
             </ListGroup.Item>
@@ -49,7 +44,6 @@ const Cart = ({ cartItems, onClearCart, onFinishSale, onUpdateQuantity, customer
           <p className="text-center text-muted mt-4">Seu carrinho está vazio.</p>
         )}
       </ListGroup>
-
       <div className="cart-footer mt-auto">
         <hr />
         <div className="d-flex justify-content-between align-items-center">
