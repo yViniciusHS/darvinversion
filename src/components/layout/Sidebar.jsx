@@ -1,46 +1,70 @@
-// src/pages/IndustryInsightsPage.jsx
+// src/components/layout/Sidebar.jsx
+
 import React from 'react';
-import { Card, Button, Row, Col } from 'react-bootstrap';
-import { Bullseye, Cart4, BarChartLine, GeoAlt } from 'react-bootstrap-icons';
+import { Nav, Button } from 'react-bootstrap';
+import { NavLink, useNavigate } from 'react-router-dom';
+// Ícone PuzzleFill adicionado para a nova seção "Conecta"
+import { 
+    BarChart, BagCheckFill, BoxArrowRight, CashStack, 
+    BoxSeam, JournalText, LightningCharge, Trash, PuzzleFill 
+} from 'react-bootstrap-icons';
+import { logout } from '../../services/authService';
 
-const mockReports = [
-    { id: 1, title: "Análise de Cesta de Compras", description: "Descubra quais produtos são comprados juntos com os seus.", icon: <Cart4/>, price: 250 },
-    { id: 2, title: "Performance por Categoria", description: "Compare a performance dos seus SKUs contra a média da categoria.", icon: <BarChartLine/>, price: 400 },
-    { id: 3, title: "Mapa Geográfico de Vendas", description: "Identifique 'white spaces' e áreas de alta/baixa performance por cidade.", icon: <GeoAlt/>, price: 650 },
-];
+const Sidebar = ({ user }) => {
+  const navigate = useNavigate();
 
-const IndustryInsightsPage = () => {
-    const handleOrder = (report) => {
-        alert(`Relatório "${report.title}" encomendado! A DARVIN irá processar os dados e notificá-lo quando estiver pronto.`);
-    };
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
-    return (
-        <div>
-            <h2 className="mb-2">DARVIN Insights Market</h2>
-            <p className="text-muted mb-4">Encomende relatórios de inteligência de mercado sob demanda, gerados a partir de dados agregados e anonimizados da nossa rede de varejistas.</p>
-            
-            <Row xs={1} md={2} lg={3} className="g-4">
-                {mockReports.map(report => (
-                    <Col key={report.id}>
-                        <Card className="h-100 d-flex flex-column">
-                            <Card.Body className="flex-grow-1">
-                                <div className="text-center mb-3 fs-1 text-primary">{report.icon}</div>
-                                <Card.Title className="text-center">{report.title}</Card.Title>
-                                <Card.Text>{report.description}</Card.Text>
-                            </Card.Body>
-                            <Card.Footer className="text-center">
-                                <p className="text-muted mb-1">Valor do Relatório</p>
-                                <h4 className="mb-3">R$ {report.price.toFixed(2)}</h4>
-                                <Button variant="primary" className="w-100" onClick={() => handleOrder(report)}>
-                                    <Bullseye className="me-2" /> Encomendar Insight
-                                </Button>
-                            </Card.Footer>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-        </div>
-    );
+  return (
+    <div className="sidebar">
+      <h3 className="text-primary mb-4">DARVIN</h3>
+      <p className="text-muted small">Bem-vindo(a),<br/><strong>{user?.name}</strong></p>
+      <hr />
+      <Nav className="flex-column">
+        {user?.role === 'industry' && (
+          <>
+            <Nav.Link as={NavLink} to="/industry/dashboard">
+              <BarChart className="me-2" /> Dashboard
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/industry/investments">
+              <CashStack className="me-2" /> Investimentos
+            </Nav.Link>
+          </>
+        )}
+        {user?.role === 'retailer' && (
+          <>
+            <Nav.Link as={NavLink} to="/retailer/dashboard">
+              <BagCheckFill className="me-2" /> Ponto de Venda
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/retailer/quick-entry">
+              <LightningCharge className="me-2" /> Lançamento Rápido
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/retailer/stock">
+              <BoxSeam className="me-2" /> Estoque
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/retailer/history">
+              <JournalText className="me-2" /> Histórico
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/retailer/losses">
+              <Trash className="me-2" /> Controle de Perdas
+            </Nav.Link>
+            {/* LINKS ANTIGOS REMOVIDOS E SUBSTITUÍDOS PELO NOVO LINK UNIFICADO */}
+            <Nav.Link as={NavLink} to="/retailer/connect">
+              <PuzzleFill className="me-2" /> DARVIN Conecta
+            </Nav.Link>
+          </>
+        )}
+      </Nav>
+      <div className="mt-auto" style={{ position: 'absolute', bottom: '2rem' }}>
+        <Button variant="outline-danger" onClick={handleLogout}>
+          <BoxArrowRight className="me-2" /> Sair
+        </Button>
+      </div>
+    </div>
+  );
 };
 
-export default IndustryInsightsPage;
+export default Sidebar;
